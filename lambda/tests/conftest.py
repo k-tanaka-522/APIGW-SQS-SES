@@ -119,7 +119,7 @@ def sqs_wrapped_event(cloudwatch_alarm_event):
 @pytest.fixture
 def field_map():
     from pathlib import Path
-    map_path = Path(__file__).resolve().parent.parent / "lambda" / "alertmailer" / "mappings" / "field_map.json"
+    map_path = Path(__file__).resolve().parent.parent / "functions" / "alertmailer" / "mappings" / "field_map.json"
     with open(map_path, encoding="utf-8") as f:
         return json.load(f)
 
@@ -127,6 +127,6 @@ def field_map():
 @pytest.fixture
 def priority_map():
     from pathlib import Path
-    map_path = Path(__file__).resolve().parent.parent / "lambda" / "alertmailer" / "mappings" / "priority_map.json"
+    map_path = Path(__file__).resolve().parent.parent / "functions" / "alertmailer" / "mappings" / "priority_map.json"
     with open(map_path, encoding="utf-8") as f:
         return json.load(f)

@@ -1,6 +1,6 @@
 ---
 paths:
-  - "tests/**/*.py"
+  - "lambda/tests/**/*.py"
   - "**/test_*.py"
   - "**/conftest.py"
 ---
@@ -27,16 +27,16 @@ paths:
 
 ## テスト構成
 ```
-tests/
-├── conftest.py          # 共通fixture（全テストで使用）
-├── unit/                # 機能モジュールのテスト
+lambda/tests/
+├── conftest.py              # 共通fixture（全テストで使用）
+├── unit_alertmailer/        # alertmailer関数テスト
 │   ├── test_handler.py
 │   ├── test_cloudwatch_alarm.py
 │   ├── test_cloudwatch_logs.py
 │   ├── test_ecs_task.py
 │   ├── test_renderer.py
 │   └── test_sender.py
-└── unit_common/         # Lambda共通Layerのテスト
+└── unit_layer/              # Lambda共通Layerテスト
     ├── test_decorator.py
     └── test_logger.py
 ```

@@ -1,4 +1,3 @@
-import json
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -20,13 +19,13 @@ class TestLambdaBootstrap:
         handler({"Records": []}, mock_context)
 
         assert mock_logger.info.call_count == 2
-        start = json.loads(mock_logger.info.call_args_list[0][0][0])
-        end = json.loads(mock_logger.info.call_args_list[1][0][0])
-        assert start["phase"] == "START"
-        assert start["service"] == "test-svc"
-        assert start["request_id"] == "test-request-id-12345"
-        assert end["phase"] == "END"
-        assert end["status"] == "SUCCESS"
+        start_output = mock_logger.info.call_args_list[0][0][0]
+        end_output = mock_logger.info.call_args_list[1][0][0]
+        assert start_output.startswith("START ")
+        assert "test-svc" in start_output
+        assert "test-request-id-12345" in start_output
+        assert end_output.startswith("END ")
+        assert "SUCCESS" in end_output
 
     @patch("lambda_common.decorator.init_tracer")
     @patch("lambda_common.decorator.get_logger")
@@ -45,12 +44,13 @@ class TestLambdaBootstrap:
             bad_handler({}, mock_context)
 
         mock_logger.error.assert_called_once()
-        err = json.loads(mock_logger.error.call_args[0][0])
-        assert err["phase"] == "ERROR"
-        assert err["status"] == "FAILURE"
-        assert err["error_type"] == "RuntimeError"
-        assert "test error" in err["error_message"]
-        assert "Traceback" in err["stacktrace"]
+        err_output = mock_logger.error.call_args[0][0]
+        first_line = err_output.split("\n")[0]
+        assert first_line.startswith("ERROR ")
+        assert "FAILURE" in first_line
+        assert "RuntimeError" in first_line
+        assert "test error" in first_line
+        assert "Traceback" in err_output
 
     @patch("lambda_common.decorator.init_tracer")
     @patch("lambda_common.decorator.get_logger")

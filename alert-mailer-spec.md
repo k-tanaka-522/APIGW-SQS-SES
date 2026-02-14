@@ -3,11 +3,11 @@
 ## 1. 概要
 
 ### 背景
-現在、AWS上でCloudWatch Logs / CloudWatch Alarm / ECS Task State Changeの監視検知→メール通知をLambda（MonitoringMail）で実行している。Hinemos（XCP）からの通知メールと形式が異なり、運用チームが見づらい状態にある。本リファクタリングでは以下を実施する。
+現在、AWS上でCloudWatch Logs / CloudWatch Alarm / ECS Task State Changeの監視検知→メール通知をLambda（MonitoringMail）で実行している。既存監視ツールからの通知メールと形式が異なり、運用チームが見づらい状態にある。本リファクタリングでは以下を実施する。
 
 ### 目的
 1. モジュール分割によるメンテナンス性の向上
-2. Hinemosメール（XCPクロスチャネルプラットフォーム）とのデザイン・項目統一
+2. 既存監視ツールのメールとのデザイン・項目統一
 3. API Gateway → SQS → Lambda → SES 構成への移行（非同期化・流量制御）
 4. X-Rayによるエンドツーエンドトレーシング
 5. Lambda共通処理のLayer化（複数Lambda横展開前提）
@@ -79,7 +79,7 @@ alert-mailer/
 │       ├── sender.py                # SES送信
 │       ├── utils.py                 # format_jst, _split_emails等
 │       └── mappings/
-│           ├── field_map.json       # XCP互換 項目マッピング
+│           ├── field_map.json       # 統一フォーマット 項目マッピング
 │           └── priority_map.json    # 重要度マッピング
 ├── events/
 │   ├── sqs_cloudwatch_alarm.json    # テスト用イベント
@@ -571,11 +571,11 @@ def extract(event: dict, context) -> dict | None:
 
 ### 5.3 renderer.py（HTML/テキスト生成）
 
-責務: `fields` dict + `field_map.json` + `priority_map.json` → XCPスタイルのHTML + プレーンテキスト
+責務: `fields` dict + `field_map.json` + `priority_map.json` → 統一スタイルのHTML + プレーンテキスト
 
-#### XCPデザイン仕様（HTMLメールテンプレート）
+#### デザイン仕様（HTMLメールテンプレート）
 
-以下のHinemosメールのCSSスタイルに準拠する:
+以下の既存監視ツールのメールのCSSスタイルに準拠する:
 
 ```css
 table { border-spacing: 0; border: none; }
@@ -602,7 +602,7 @@ td.Info     { background-color: #0080b1; font-weight: 700; font-size: large; col
 td.Unknown  { background-color: #bc4328; font-weight: 700; font-size: large; color: #fff; }
 ```
 
-テーブル構造はXCPと同じ2カラム形式:
+テーブル構造は統一フォーマットの2カラム形式:
 - thead: 「項目名」「通知内容」のヘッダ行
 - tbody: field_map.json の fields 順に行を生成
 - 重要度セルにはCSSクラス（Critical/Warning/Info/Unknown）を適用
@@ -626,7 +626,7 @@ def render(fields: dict, field_map: dict, priority_map: dict) -> tuple[str, str,
         value = fields.get(f["key"], "-")
         rows.append({"label": f["label"], "value": value, "key": f["key"]})
 
-    body_html = _build_xcp_html(rows, fields)
+    body_html = _build_html(rows, fields)
     body_text = _build_plain_text(rows, fields)
     subject = _build_subject(fields)
 
@@ -647,8 +647,8 @@ def _build_plain_text(rows: list[dict], fields: dict) -> str:
     return "\n".join(lines)
 
 
-def _build_xcp_html(rows: list[dict], fields: dict) -> str:
-    """XCPクロスチャネルプラットフォームと同じテーブルデザインのHTMLを生成"""
+def _build_html(rows: list[dict], fields: dict) -> str:
+    """統一フォーマットと同じテーブルデザインのHTMLを生成"""
     css_class = fields.get("priority_css_class", "Unknown")
     env_name = html_mod.escape(fields.get("env_name", ""))
     plugin_name = html_mod.escape(fields.get("plugin_name", ""))
@@ -797,7 +797,7 @@ def format_jst(dt_utc: datetime) -> str:
 
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Alert Mailer - Monitoring notification with XCP-compatible format
+Description: Alert Mailer - Monitoring notification with unified notification format
 
 Parameters:
   EnvName:
@@ -1479,8 +1479,8 @@ import pytest
 
 
 class TestRenderer:
-    def test_xcp_style_html(self, field_map, priority_map):
-        """XCPスタイルのHTML生成"""
+    def test_standard_style_html(self, field_map, priority_map):
+        """統一スタイルのHTML生成"""
         from functions.alert_mailer.renderer import render
         fields = {
             "priority": "ALARM",
@@ -1491,8 +1491,8 @@ class TestRenderer:
         }
         subject, body_text, body_html = render(fields, field_map, priority_map)
 
-        assert "#0f1c50" in body_html    # XCPヘッダ色
-        assert "#6785c1" in body_html    # XCP行ヘッダ色
+        assert "#0f1c50" in body_html    # ヘッダ色
+        assert "#6785c1" in body_html    # 行ヘッダ色
         assert 'class="Critical"' in body_html
         assert "危険" in subject
 
@@ -1750,7 +1750,7 @@ class TestLogWarn:
 
 ### Phase 1（本タスク）
 - モジュール分割（handler/handlers/renderer/sender/utils/mappings）
-- XCPデザイン統一（field_map.json + priority_map.json + HTMLテンプレート）
+- デザイン統一（field_map.json + priority_map.json + HTMLテンプレート）
 - 単一アラーム + CloudWatch Logs + ECS Taskの3パターン
 - 複合アラームは単一と同じ処理（シンプル化）
 - Lambda共通Layer（decorator/logger/tracer/config）

@@ -21,7 +21,7 @@
 - 関数・変数: snake_case
 - クラス: PascalCase
 - 定数: UPPER_SNAKE_CASE
-- プライベート関数: `_` プレフィックス（例: `_split`, `_build_xcp_html`）
+- プライベート関数: `_` プレフィックス（例: `_split`, `_build_html`）
 
 ## boto3 クライアント初期化
 - モジュールレベルで初期化（Lambda のコールドスタート最適化）

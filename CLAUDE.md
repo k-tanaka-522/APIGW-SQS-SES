@@ -3,7 +3,7 @@
 ## プロジェクト概要
 
 AWS上の監視検知イベント（CloudWatch Logs / CloudWatch Alarm / ECS Task State Change）を
-Hinemos（XCP）互換フォーマットのメールで通知するシステム。
+統一フォーマットのメールで通知するシステム。
 
 **アーキテクチャ**: EventBridge/CW Logs Subscription → API Gateway → SQS → Lambda → SES
 
@@ -21,24 +21,28 @@ Hinemos（XCP）互換フォーマットのメールで通知するシステム�
 ## ディレクトリ構成
 
 ```
-alert-mailer/
 ├── lambda/
-│   ├── alertmailer/                 # Lambda関数コード
-│   │   ├── handler.py               # エントリポイント（SQSアンラップ + ルーティング）
-│   │   ├── handlers/                # イベント種別ごとの抽出処理
-│   │   │   ├── cloudwatch_logs.py   # extract() → dict
-│   │   │   ├── cloudwatch_alarm.py  # extract() → dict
-│   │   │   └── ecs_task.py          # extract() → dict | None
-│   │   ├── renderer.py              # XCP互換 HTML/テキスト生成
-│   │   ├── sender.py                # SES送信
-│   │   ├── utils.py                 # ユーティリティ（JST変換等）
-│   │   └── mappings/                # JSON定義ファイル
-│   └── layers/
-│       └── lambda_common/python/lambda_common/   # 共通Layer
-│           ├── decorator.py         # @lambda_bootstrap デコレータ
-│           ├── logger.py            # 構造化ログ（JSON）
-│           ├── tracer.py            # X-Ray初期化
-│           └── config.py            # 環境変数ロード
+│   ├── functions/
+│   │   └── alertmailer/             # Lambda関数コード
+│   │       ├── handler.py           # エントリポイント（SQSアンラップ + ルーティング）
+│   │       ├── handlers/            # イベント種別ごとの抽出処理
+│   │       │   ├── cloudwatch_logs.py   # extract() → dict
+│   │       │   ├── cloudwatch_alarm.py  # extract() → dict
+│   │       │   └── ecs_task.py          # extract() → dict | None
+│   │       ├── renderer.py          # 統一フォーマット HTML/テキスト生成
+│   │       ├── sender.py            # SES送信
+│   │       ├── utils.py             # ユーティリティ（JST変換等）
+│   │       └── mappings/            # JSON定義ファイル
+│   ├── layers/
+│   │   └── lambda_common/python/lambda_common/   # 共通Layer
+│   │       ├── decorator.py         # @lambda_bootstrap デコレータ
+│   │       ├── logger.py            # 構造化ログ（プレーンテキスト）
+│   │       ├── tracer.py            # X-Ray初期化
+│   │       └── config.py            # 環境変数ロード
+│   └── tests/
+│       ├── conftest.py              # 共通fixture
+│       ├── unit_alertmailer/        # alertmailer関数テスト
+│       └── unit_layer/              # 共通Layerテスト
 ├── cloudformation/
 │   ├── templates/                   # CFnテンプレート（5スタック分割）
 │   │   ├── sqs.yaml                 # SQS + DLQ
@@ -54,29 +58,25 @@ alert-mailer/
 │       └── prod.json
 ├── scripts/
 │   └── deploy.sh                    # マルチスタックデプロイスクリプト
-├── events/                          # テスト用SQSイベントサンプル
-└── tests/
-    ├── conftest.py                  # 共通fixture
-    ├── unit/                        # ユニットテスト
-    └── unit_common/                 # Layer用テスト
+└── events/                          # テスト用SQSイベントサンプル
 ```
 
 ## コマンド
 
 ```bash
 # テスト実行
-pytest tests/ -v
+pytest lambda/tests/ -v
 
 # カバレッジ付きテスト
-pytest tests/ --cov=lambda --cov-report=term-missing
+pytest lambda/tests/ --cov=lambda --cov-report=term-missing
 
 # CloudFormation テンプレート検証（全テンプレート）
-for f in alert-mailer/cloudformation/templates/*.yaml; do
+for f in cloudformation/templates/*.yaml; do
   aws cloudformation validate-template --template-body file://$f
 done
 
 # デプロイ（環境指定: dev/stg/prod）
-bash alert-mailer/scripts/deploy.sh dev
+bash scripts/deploy.sh dev
 ```
 
 ## 設計上の重要な方針

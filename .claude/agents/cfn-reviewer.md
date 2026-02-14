@@ -35,7 +35,7 @@ tools: Read, Grep, Glob, Bash
 
 ## 検証コマンド
 ```bash
-aws cloudformation validate-template --template-body file://alert-mailer/template.yaml
+aws cloudformation validate-template --template-body file://cloudformation/templates/sqs.yaml
 ```
 
 ## 出力形式
