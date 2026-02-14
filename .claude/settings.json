@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pytest *)",
+      "Bash(python -m pytest *)",
+      "Bash(python -c *)",
+      "Bash(pip install *)",
+      "Bash(pip list *)",
+      "Bash(aws cloudformation validate-template *)",
+      "Bash(aws cloudformation package *)",
+      "Bash(zip *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}

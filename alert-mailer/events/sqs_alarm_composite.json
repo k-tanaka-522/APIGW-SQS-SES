@@ -1,0 +1,18 @@
+{
+  "Records": [
+    {
+      "messageId": "msg-composite-001",
+      "receiptHandle": "dummy-receipt-handle",
+      "body": "{\"source\":\"aws.cloudwatch\",\"detail-type\":\"CloudWatch Alarm State Change\",\"time\":\"2026-02-14T03:00:00Z\",\"region\":\"ap-northeast-1\",\"detail\":{\"alarmName\":\"composite-ecs-alarm\",\"state\":{\"value\":\"ALARM\",\"reason\":\"child alarm triggered\",\"reasonData\":\"\"}}}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1739494800000",
+        "ApproximateFirstReceiveTimestamp": "1739494800001"
+      },
+      "md5OfBody": "dummy",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:alert-mailer-queue",
+      "awsRegion": "ap-northeast-1"
+    }
+  ]
+}

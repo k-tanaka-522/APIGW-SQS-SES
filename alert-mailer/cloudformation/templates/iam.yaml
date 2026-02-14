@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Alert Mailer - IAM Roles & Policies
+
+Parameters:
+  EnvPrefix:
+    Type: String
+    Description: "環境プレフィックス (dev/stg/prod)"
+
+Resources:
+
+  AlertMailerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvPrefix}-alert-mailer-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      Policies:
+        - PolicyName: alert-mailer-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !ImportValue
+                  Fn::Sub: "${EnvPrefix}-AlertQueueArn"
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - cloudwatch:DescribeAlarms
+                Resource: "*"
+
+  ApiToSqsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvPrefix}-api-to-sqs-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: sqs-send
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !ImportValue
+                  Fn::Sub: "${EnvPrefix}-AlertQueueArn"
+
+Outputs:
+  LambdaRoleArn:
+    Value: !GetAtt AlertMailerRole.Arn
+    Export:
+      Name: !Sub "${EnvPrefix}-LambdaRoleArn"
+  ApiRoleArn:
+    Value: !GetAtt ApiToSqsRole.Arn
+    Export:
+      Name: !Sub "${EnvPrefix}-ApiRoleArn"

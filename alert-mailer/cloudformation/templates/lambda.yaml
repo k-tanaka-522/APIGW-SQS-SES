@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Alert Mailer - Lambda Function, Layer & Event Source Mapping
+
+Parameters:
+  EnvPrefix:
+    Type: String
+    Description: "環境プレフィックス (dev/stg/prod)"
+  EnvName:
+    Type: String
+    Default: "本番環境"
+  FacilityName:
+    Type: String
+    Default: "aws-production"
+  MailFrom:
+    Type: String
+  MailTo:
+    Type: String
+  MailCc:
+    Type: String
+    Default: ""
+  MailBcc:
+    Type: String
+    Default: ""
+  MailSubjectPrefix:
+    Type: String
+    Default: "[AWS監視] "
+  NotifyDescription:
+    Type: String
+    Default: "AWS監視 通知定義 (メール送信)"
+  LambdaCodeS3Bucket:
+    Type: String
+    Description: "Lambda code and layer zip upload bucket"
+  AlertMailerCodeS3Key:
+    Type: String
+    Default: "lambda/alert-mailer.zip"
+  CommonLayerS3Key:
+    Type: String
+    Default: "lambda/lambda-common-layer.zip"
+
+Resources:
+
+  CommonLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: !Sub "${EnvPrefix}-lambda-common"
+      Description: "共通処理Layer (logger/tracer/decorator) - 複数Lambdaで共有"
+      Content:
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref CommonLayerS3Key
+      CompatibleRuntimes:
+        - python3.12
+      CompatibleArchitectures:
+        - x86_64
+
+  AlertMailerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${EnvPrefix}-alert-mailer"
+      Runtime: python3.12
+      Handler: handler.lambda_handler
+      Code:
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref AlertMailerCodeS3Key
+      Role: !ImportValue
+        Fn::Sub: "${EnvPrefix}-LambdaRoleArn"
+      Timeout: 60
+      MemorySize: 256
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          ENV_NAME: !Ref EnvName
+          FACILITY_NAME: !Ref FacilityName
+          NOTIFY_DESCRIPTION: !Ref NotifyDescription
+          MAIL_FROM: !Ref MailFrom
+          MAIL_TO: !Ref MailTo
+          MAIL_CC: !Ref MailCc
+          MAIL_BCC: !Ref MailBcc
+          MAIL_SUBJECT_PREFIX: !Ref MailSubjectPrefix
+          AWS_ACCOUNT_ID: !Ref AWS::AccountId
+
+  AlertMailerEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !ImportValue
+        Fn::Sub: "${EnvPrefix}-AlertQueueArn"
+      FunctionName: !Ref AlertMailerFunction
+      BatchSize: 1
+      MaximumConcurrency: 1
+      Enabled: true
+
+Outputs:
+  FunctionArn:
+    Value: !GetAtt AlertMailerFunction.Arn
+    Export:
+      Name: !Sub "${EnvPrefix}-FunctionArn"
+  LayerArn:
+    Value: !Ref CommonLayer
+    Export:
+      Name: !Sub "${EnvPrefix}-LayerArn"
+    Description: "他のLambdaでも使用可能な共通LayerのARN"

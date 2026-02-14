@@ -1,0 +1,7 @@
+{
+  "ALARM":             {"label": "危険", "css_class": "Critical"},
+  "INSUFFICIENT_DATA": {"label": "不明", "css_class": "Unknown"},
+  "OK":                {"label": "情報", "css_class": "Info"},
+  "ERROR":             {"label": "危険", "css_class": "Critical"},
+  "TASK_STOPPED":      {"label": "警戒", "css_class": "Warning"}
+}

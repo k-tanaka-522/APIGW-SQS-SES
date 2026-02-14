@@ -1,0 +1,14 @@
+[
+  { "ParameterKey": "EnvPrefix",          "ParameterValue": "prod" },
+  { "ParameterKey": "EnvName",            "ParameterValue": "本番環境" },
+  { "ParameterKey": "FacilityName",       "ParameterValue": "aws-production" },
+  { "ParameterKey": "MailFrom",           "ParameterValue": "alert@example.com" },
+  { "ParameterKey": "MailTo",             "ParameterValue": "ops-team@example.com" },
+  { "ParameterKey": "MailCc",             "ParameterValue": "" },
+  { "ParameterKey": "MailBcc",            "ParameterValue": "" },
+  { "ParameterKey": "MailSubjectPrefix",  "ParameterValue": "[AWS監視] " },
+  { "ParameterKey": "NotifyDescription",  "ParameterValue": "AWS監視 通知定義 (メール送信)" },
+  { "ParameterKey": "LambdaCodeS3Bucket", "ParameterValue": "my-deploy-bucket-prod" },
+  { "ParameterKey": "AlertMailerCodeS3Key","ParameterValue": "lambda/alert-mailer.zip" },
+  { "ParameterKey": "CommonLayerS3Key",   "ParameterValue": "lambda/lambda-common-layer.zip" }
+]

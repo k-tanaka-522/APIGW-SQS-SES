@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Alert Mailer - X-Ray Sampling Rule
+
+Parameters:
+  EnvPrefix:
+    Type: String
+    Description: "環境プレフィックス (dev/stg/prod)"
+
+Resources:
+
+  XRaySamplingRule:
+    Type: AWS::XRay::SamplingRule
+    Properties:
+      SamplingRule:
+        RuleName: !Sub "${EnvPrefix}-alert-mailer-all"
+        Priority: 100
+        FixedRate: 1.0
+        ReservoirSize: 0
+        ServiceName: !Sub "${EnvPrefix}-alert-mailer"
+        ServiceType: "*"
+        Host: "*"
+        HTTPMethod: "*"
+        URLPath: "*"
+        ResourceARN: "*"
+        Version: 1

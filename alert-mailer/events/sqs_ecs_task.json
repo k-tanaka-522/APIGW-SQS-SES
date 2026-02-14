@@ -1,0 +1,18 @@
+{
+  "Records": [
+    {
+      "messageId": "msg-ecs-001",
+      "receiptHandle": "dummy-receipt-handle",
+      "body": "{\"source\":\"aws.ecs\",\"detail-type\":\"ECS Task State Change\",\"time\":\"2026-02-14T02:00:00Z\",\"region\":\"ap-northeast-1\",\"detail\":{\"clusterArn\":\"arn:aws:ecs:ap-northeast-1:123456789012:cluster/my-cluster\",\"taskArn\":\"arn:aws:ecs:ap-northeast-1:123456789012:task/my-cluster/abc123\",\"taskDefinitionArn\":\"arn:aws:ecs:ap-northeast-1:123456789012:task-definition/my-task:1\",\"stoppedReason\":\"Essential container in task exited\",\"containers\":[{\"name\":\"app\",\"exitCode\":1,\"reason\":\"OutOfMemory\"},{\"name\":\"sidecar\",\"exitCode\":0,\"reason\":\"\"}]}}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1739491200000",
+        "ApproximateFirstReceiveTimestamp": "1739491200001"
+      },
+      "md5OfBody": "dummy",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:alert-mailer-queue",
+      "awsRegion": "ap-northeast-1"
+    }
+  ]
+}

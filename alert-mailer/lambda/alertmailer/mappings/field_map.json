@@ -1,0 +1,26 @@
+{
+  "common": {
+    "env_name": "${ENV_NAME}",
+    "facility_id": "${AWS_ACCOUNT_ID}-${AWS_REGION}",
+    "facility_name": "${FACILITY_NAME}",
+    "notify_description": "${NOTIFY_DESCRIPTION}"
+  },
+  "fields": [
+    {"key": "env_name",            "label": "環境"},
+    {"key": "priority_label",      "label": "重要度"},
+    {"key": "msg_code",            "label": "MSGコード"},
+    {"key": "plugin_name",         "label": "プラグイン名"},
+    {"key": "monitor_id",          "label": "監視項目ID"},
+    {"key": "monitor_detail",      "label": "監視詳細"},
+    {"key": "monitor_description", "label": "監視項目説明"},
+    {"key": "scope",               "label": "スコープ"},
+    {"key": "generation_date",     "label": "出力日時"},
+    {"key": "application",         "label": "アプリケーション"},
+    {"key": "message",             "label": "メッセージ"},
+    {"key": "org_message",         "label": "オリジナルメッセージ"},
+    {"key": "notify_description",  "label": "通知説明"},
+    {"key": "notify_uuid",         "label": "通知UUID"},
+    {"key": "facility_id",         "label": "ファシリティID"},
+    {"key": "facility_name",       "label": "ファシリティ名"}
+  ]
+}

@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Alert Mailer - API Gateway REST API + SQS Queue Policy
+
+Parameters:
+  EnvPrefix:
+    Type: String
+    Description: "環境プレフィックス (dev/stg/prod)"
+
+Resources:
+
+  AlertApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub "${EnvPrefix}-alert-mailer-api"
+      Description: "Alert Mailer API - routes events to SQS"
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  AlertResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AlertApi
+      ParentId: !GetAtt AlertApi.RootResourceId
+      PathPart: alert
+
+  AlertPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AlertApi
+      ResourceId: !Ref AlertResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${QueueName}"
+          - QueueName: !ImportValue
+              Fn::Sub: "${EnvPrefix}-AlertQueueName"
+        Credentials: !ImportValue
+          Fn::Sub: "${EnvPrefix}-ApiRoleArn"
+        RequestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+        RequestTemplates:
+          application/json: "Action=SendMessage&MessageBody=$input.body"
+        IntegrationResponses:
+          - StatusCode: 202
+            ResponseTemplates:
+              application/json: '{"message": "accepted"}'
+      MethodResponses:
+        - StatusCode: 202
+
+  AlertApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: AlertPostMethod
+    Properties:
+      RestApiId: !Ref AlertApi
+
+  AlertApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref AlertApi
+      DeploymentId: !Ref AlertApiDeployment
+      StageName: prod
+      TracingEnabled: true
+
+  # SQS Queue Policy - API Gateway → SQS の許可
+  # QueuePolicy は API Gateway ARN を参照するため、api-gateway スタックに配置
+  AlertQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !ImportValue
+            Fn::Sub: "${EnvPrefix}-AlertQueueUrl"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: !ImportValue
+              Fn::Sub: "${EnvPrefix}-AlertQueueArn"
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AlertApi}/*"
+
+Outputs:
+  ApiEndpoint:
+    Value: !Sub "https://${AlertApi}.execute-api.${AWS::Region}.amazonaws.com/prod/alert"
+    Export:
+      Name: !Sub "${EnvPrefix}-ApiEndpoint"

@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Alert Mailer - SQS Queues (main + DLQ)
+
+Parameters:
+  EnvPrefix:
+    Type: String
+    Description: "環境プレフィックス (dev/stg/prod)"
+
+Resources:
+
+  AlertQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${EnvPrefix}-alert-mailer-queue"
+      VisibilityTimeout: 360
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt AlertDLQ.Arn
+        maxReceiveCount: 3
+
+  AlertDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${EnvPrefix}-alert-mailer-dlq"
+      MessageRetentionPeriod: 1209600
+
+Outputs:
+  QueueArn:
+    Value: !GetAtt AlertQueue.Arn
+    Export:
+      Name: !Sub "${EnvPrefix}-AlertQueueArn"
+  QueueUrl:
+    Value: !Ref AlertQueue
+    Export:
+      Name: !Sub "${EnvPrefix}-AlertQueueUrl"
+  QueueName:
+    Value: !GetAtt AlertQueue.QueueName
+    Export:
+      Name: !Sub "${EnvPrefix}-AlertQueueName"
+  DLQArn:
+    Value: !GetAtt AlertDLQ.Arn
+    Export:
+      Name: !Sub "${EnvPrefix}-AlertDLQArn"
+  DLQUrl:
+    Value: !Ref AlertDLQ
+    Export:
+      Name: !Sub "${EnvPrefix}-AlertDLQUrl"

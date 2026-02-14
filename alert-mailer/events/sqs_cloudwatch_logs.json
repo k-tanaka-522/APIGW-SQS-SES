@@ -1,0 +1,18 @@
+{
+  "Records": [
+    {
+      "messageId": "msg-logs-001",
+      "receiptHandle": "dummy-receipt-handle",
+      "body": "{\"awslogs\":{\"data\":\"H4sIAAAAAAAAA6tWKkktLlGyUlAqS8wpTgUAKysQ1hIAAAA=\"}}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1739487600000",
+        "ApproximateFirstReceiveTimestamp": "1739487600001"
+      },
+      "md5OfBody": "dummy",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:alert-mailer-queue",
+      "awsRegion": "ap-northeast-1"
+    }
+  ]
+}

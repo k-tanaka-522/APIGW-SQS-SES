@@ -1,0 +1,18 @@
+{
+  "Records": [
+    {
+      "messageId": "msg-alarm-001",
+      "receiptHandle": "dummy-receipt-handle",
+      "body": "{\"source\":\"aws.cloudwatch\",\"detail-type\":\"CloudWatch Alarm State Change\",\"time\":\"2026-02-14T01:00:00Z\",\"region\":\"ap-northeast-1\",\"detail\":{\"alarmName\":\"test-cpu-alarm\",\"state\":{\"value\":\"ALARM\",\"reason\":\"Threshold Crossed: 1 out of 1 datapoints were greater than 80.0\",\"reasonData\":\"{\\\"version\\\":\\\"1.0\\\",\\\"queryDate\\\":\\\"2026-02-14T01:00:00Z\\\"}\"}}}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1739487600000",
+        "ApproximateFirstReceiveTimestamp": "1739487600001"
+      },
+      "md5OfBody": "dummy",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:alert-mailer-queue",
+      "awsRegion": "ap-northeast-1"
+    }
+  ]
+}
